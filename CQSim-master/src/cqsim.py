@@ -13,15 +13,48 @@ def datetime_strptime (value, format):
     """Parse a datetime like datetime.strptime in Python >= 2.5"""
     return datetime(*time.strptime(value, format)[0:6])
 
-def parse_swf(file_path):
-    """
-    Function to parse the SWF file and extract workload information.
-    Modify this function as per the structure of your SWF files.
-    """
-    with open(file_path, 'r') as file:
-        # Placeholder: You would process the SWF file contents here
-        workload_data = file.readlines()  # Read file contents
-    return workload_data
+def parse_swf(file_path, max_jobs=10):
+    print("yep")
+    exit()
+    """Function to parse the SWF file and extract workload information."""
+    jobs = []
+    with open(file_path, 'r') as f:
+        for line in f:
+            if line.startswith(";") or not line.strip():
+                continue  # Skip comments and empty lines
+
+            columns = line.split()  # Adjust if using another delimiter
+
+            if len(columns) < 18:  # Ensure all expected columns exist
+                continue
+
+            job_id = int(columns[0])
+            submit_time = int(columns[1])
+            run_time = int(columns[3])
+            requested_nodes = int(columns[4])
+            allocated_nodes = int(columns[5])
+            gpu_allocation = int(columns[17])  # Extract GPU allocation
+
+            print("gpu_alloc:", gpu_allocation)
+
+            jobs.append({
+                "job_id": job_id,
+                "submit_time": submit_time,
+                "run_time": run_time,
+                "requested_nodes": requested_nodes,
+                "allocated_nodes": allocated_nodes,
+                "gpu_allocation": gpu_allocation
+            })
+
+            if len(jobs) >= max_jobs:
+                break
+
+    return jobs
+
+
+
+#file_path = "/Users/dinesh/Documents/GitHub/CQFYP/CQSim-master/src/edited.swf"  
+#workload_data = parse_swf(file_path)
 
 def run_scheduling_algorithm(algorithm, workload_data):
     """
@@ -31,12 +64,16 @@ def run_scheduling_algorithm(algorithm, workload_data):
         scheduler = GavelScheduling(workload_data)
     elif algorithm == "FCFS":
         scheduler = FCFS(workload_data)
+    #elif algorithm == "SJF":
+        #scheduler = SJF(workload_data)
     else:
         raise ValueError("Unsupported scheduling algorithm.")
 
+    currentTime = 0  # ✅ Start time from 0
+    scheduler.schedule(workload_data, currentTime)  # ✅ Call `schedule()`
     # Simulate the scheduling and get results
-    results = scheduler.schedule()
-    return results
+    #results = scheduler.schedule()
+    #return results
 
 class Option (optparse.Option):
     
@@ -481,5 +518,8 @@ if __name__ == "__main__":
     inputPara['path_debug']=cqsim_path.path_data+inputPara['path_debug']
     inputPara['alg_sign']=alg_sign_check(inputPara['alg_sign'],len(inputPara['alg']))
 
+    #print(inputPara)
     assert(inputPara['sched_alg'])
     cqsim_main.cqsim_main(inputPara)
+
+    #print("Loading dataset from:", file_path)

@@ -72,10 +72,12 @@ class Job_trace:
     def dyn_import_job_file(self):
         if self.jobFile.closed:
             return -1
+        
         temp_n = 0
         regex_str = "([^;\\n]*)[;\\n]"
         while (self.i<self.read_num or self.read_num<=0) and temp_n<self.read_input_freq:
             tempStr = self.jobFile.readline()
+            print("tempStr", tempStr)
             if self.i==self.read_num-1 or not tempStr :    # break when no more line
                 self.jobFile.close()
                 return -1
@@ -89,6 +91,8 @@ class Job_trace:
                         self.temp_start = self.min_sub
                     self.start_offset_B = self.min_sub-self.temp_start
                     
+                print("length:", len(temp_dataList))
+                
                 tempInfo = {'id':int(temp_dataList[0]),\
                             'submit':self.density*(float(temp_dataList[1])-self.min_sub)+self.temp_start,\
                             'wait':float(temp_dataList[2]),\
@@ -107,6 +111,7 @@ class Job_trace:
                             'num_part':int(temp_dataList[15]),\
                             'num_pre':int(temp_dataList[16]),\
                             'thinkTime':int(temp_dataList[17]),\
+                            'gpu_required': int(temp_dataList[18]) if len(temp_dataList) > 18 else 0,\
                             'start':-1,\
                             'end':-1,\
                             'score':0,\
@@ -118,12 +123,17 @@ class Job_trace:
                 self.job_submit_list.append(self.i)
                 self.debug.debug(temp_dataList,4)
                 #self.debug.debug("* "+str(tempInfo),4)
+                print(f"Job {tempInfo['id']}: GPUs Required = {tempInfo['gpu_required']}")
                 self.i += 1      
             self.j += 1
             temp_n += 1
             return 0
     
     def import_job_file (self, job_file):
+        print("test")
+        exit()
+        print(f"Job {tempInfo['id']}: GPUs Required = {tempInfo['gpu_required']}")
+
         #self.debug.debug("* "+self.myInfo+" -- import_job_file",5)
         temp_start=self.start
         regex_str = "([^;\\n]*)[;\\n]"
@@ -148,6 +158,8 @@ class Job_trace:
                         temp_start = min_sub
                     self.start_offset_B = min_sub-temp_start
                     
+                print(len(temp_dataList))
+                exit()
                 tempInfo = {'id':int(temp_dataList[0]),\
                             'submit':self.density*(float(temp_dataList[1])-min_sub)+temp_start,\
                             'wait':float(temp_dataList[2]),\
@@ -166,6 +178,7 @@ class Job_trace:
                             'num_part':int(temp_dataList[15]),\
                             'num_pre':int(temp_dataList[16]),\
                             'thinkTime':int(temp_dataList[17]),\
+                            'gpu_required': int(temp_dataList[18]) if len(temp_dataList) > 18 else 0,\
                             'start':-1,\
                             'end':-1,\
                             'score':0,\
@@ -276,6 +289,13 @@ class Job_trace:
         self.jobTrace[job_index]['start']=time
         self.jobTrace[job_index]['wait']=time-self.jobTrace[job_index]['submit']
         self.jobTrace[job_index]['end'] = time+self.jobTrace[job_index]['run']
+
+        if self.jobTrace[job_index].get('gpu_required', 0) == 1:
+            self.debug.debug(f"Job {job_index} is assigned to the GPU queue.", 4)
+            self.jobTrace[job_index]["state"] = 12  # Custom state for GPU jobs
+        else:
+            self.debug.debug(f"Job {job_index} is assigned to the CPU queue.", 4)
+
         self.job_wait_list.remove(job_index)
         self.job_run_list.append(job_index)
         self.job_wait_size -= self.jobTrace[job_index]["reqProc"]

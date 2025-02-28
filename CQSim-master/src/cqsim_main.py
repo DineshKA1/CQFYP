@@ -100,12 +100,27 @@ def  cqsim_main(para_list):
     #module_alg = sched_alg_class(element=[para_list['alg'],para_list['alg_sign']],debug=module_debug,para_list=para_list['ad_alg_para'])
 
     # alternative: case-by-case constructor calls
-    if para_list['sched_alg'] == 'BasicAlgorithm':
+    if para_list['sched_alg'] == 'Basic_algorithm':
       module_alg = sched_alg_class(element=[para_list['alg'],para_list['alg_sign']],debug=module_debug,para_list=para_list['ad_alg_para'])
     elif para_list['sched_alg'] == 'GavelScheduling':
       module_alg = sched_alg_class(element=[para_list['alg'],para_list['alg_sign']],debug=module_debug,para_list=para_list['ad_alg_para'])
     elif para_list['sched_alg'] == 'FCFS':
       module_alg = sched_alg_class()
+    elif para_list['sched_alg'] == 'RoundRobin':
+    # Example parameters for Round Robin
+      quantum = para_list.get('quantum', 10)  # Default quantum is 10 if not provided
+      module_alg = sched_alg_class(time_quantum=quantum)
+    elif para_list['sched_alg'] == 'PriorityScheduling':
+    # Example parameters for Priority Scheduling
+      priority_levels = para_list.get('priority_levels', 5)  # Default is 5 levels
+      module_alg = sched_alg_class(priority=priority_levels)
+    elif para_list['sched_alg'] == 'SJF':
+    # No additional parameters assumed for SJF
+      module_alg = sched_alg_class()
+    #elif para_list['sched_alg'] == 'WeightedFairQueuing':
+    # Example parameters for WFQ
+      #weights = para_list.get('weights', [1, 1, 1])  # Default weights for queues
+      #module_alg = sched_alg_class(weights=weights)
     else:
       raise NotImplementedError
     
